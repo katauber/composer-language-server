@@ -17,7 +17,7 @@ Hello VSCode from Xtext!
 Hello ThisFile from Other!
 Hello you!`;
 
-const LANGUAGE_ID = 'expression';
+const LANGUAGE_ID = 'fix';
 
 const guid = () => {
   const s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
