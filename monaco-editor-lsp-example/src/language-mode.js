@@ -1,6 +1,6 @@
 export default {
   keywords: [
-    'Hello', 'from', '!'
+    'if', 'elsif', 'else', 'do', 'end', 'map'
   ],
   operators: [
     '='
