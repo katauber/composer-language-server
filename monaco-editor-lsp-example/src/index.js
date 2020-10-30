@@ -12,105 +12,39 @@ import {
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import languageMode from './language-mode';
 
-const EDITOR_CONTENT = `/* Set up the context */
-do array('@context')
- add_field('','https://w3id.org/kim/lrmi-profile/draft/context.jsonld')
- do entity('')
-  add_field('@language', 'de')
- end
+const EDITOR_CONTENT = `# Fix is a macro-language for data transformations
+
+# Simple fixes
+
+add_field(hello,"world")
+remove_field(my.deep.nested.junk)
+copy_field(stats,output.$append)
+
+# Conditionals
+
+if exists(error)
+    set_field(is_valid, no)
+    log(error)
+elsif exists(warning)
+    set_field(is_valid, yes)
+    log(warning)
+else
+    set_field(is_valid, yes)
 end
 
-map(node.title, name)
-map(node.preview.url, image)
+# Loops
 
-/* Default ID: */
-do map('node.ref.id', id)
-  compose(prefix: 'https://$[service_domain]/edu-sharing/components/render/')
+do list(path)
+    add_field(foo,bar)
 end
 
-/* Replace default ID if we have a ccm:wwwurl */
-do map('node.properties.ccm:wwwurl[].1', id)
-  trim()
-end
+# Nested expressions
 
-do array('mainEntityOfPage')
-  do entity('')
-    do map('node.ref.id', id)
-      compose(prefix: 'https://$[service_domain]/edu-sharing/components/render/')
+do marc_each()
+    if marc_has(f700)
+        marc_map(f700a,authors.$append)
     end
-    /* Add creation/modification date, converting dateTime (e.g. 2019-07-23T09:26:00Z) to date (2019-07-23) */
-    do map('node.modifiedAt', 'dateModified')
-      replace_all(pattern: 'T.+Z', with: '')
-    end
-    do map('node.createdAt', 'dateCreated')
-      replace_all(pattern: 'T.+Z', with: '')
-    end
-    /* Add provider/source information to each resource description */
-    do entity('provider')
-      add_field('id','$[service_id]')
-      add_field('type','Service')
-      add_field('name','$[service_name]')
-    end
-  end
-end
-
-do map(node.description, description)
-  not_equals(string: '')
-end
-
-do map('node.properties.ccm:taxonid[].*', '@hochschulfaechersystematik')
-  lookup(in: 'data/maps/edusharing-subject-mapping.tsv')
-end
-
-do array('about', flushWith: record)
- do entity('', flushWith: '@hochschulfaechersystematik')
-  map('@hochschulfaechersystematik', 'id')
-  do map('@hochschulfaechersystematik', 'prefLabel.de')
-    lookup(in: 'data/maps/subject-labels.tsv')
-  end
- end
-end
-
-do array('creator', flushWith: record)
- do entity('')
-  add_field('type', 'Person')
-  map('node.properties.ccm:lifecyclecontributer_authorFN[].*', 'name')
- end
-end
-
-do array('sourceOrganization')
- do entity('')
-  add_field('type', 'Organization')
-  do map('node.properties.ccm:university_DISPLAYNAME[].1', 'name')
-    not_equals(string: '')
-    not_equals(string: '- Alle -')
-  end
- end
-end
-
-do map('node.properties.virtual:licenseurl[].1', license)
-  replace_all(pattern: '/deed.*$', with: '')
-end
-
-do map('node.properties.cclom:general_language[].1', inLanguage)
-  replace_all(pattern: '_..$', with: '') /* remove country suffixes eg. _DE */
-  replace_all(pattern: '^$', with: 'de') /* empty strings default to 'de' */
-  replace_all(pattern: 'unknown', with: 'de')
-end
-
-do map('node.properties.ccm:educationallearningresourcetype[].1', '@hcrt')
-  lookup(in: 'data/maps/edusharing-hcrt-mapping.tsv')
-end
-
-do entity('learningResourceType')
-  map('@hcrt', 'id')
-  do map('@hcrt', 'prefLabel.de')
-    lookup(in: 'data/maps/hcrt-labels.tsv')
-  end
-end
-
-/* Enable to see what else is coming in from the source: */
-/* map(_else) */`;
+end`;
 
 const LANGUAGE_ID = 'fix';
 
